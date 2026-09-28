@@ -10,7 +10,7 @@ Semana 1 - Planificación y Análisis de Requisitos
 - Autenticación: no requerida.
 - Formato: JSON.
 - Cobertura: obras, ediciones, autores y subjects de Open Library.
-- Límites: 1 solicitud por segundo por defecto; 3 solicitudes por segundo si se envía un header User-Agent con nombre de aplicación y email de contacto.
+- Límites: 1 solicitud por segundo por defecto; 3 solicitudes por segundo si se envía un header User-Agent con nombre de aplicación y email de contacto (no aplicable desde el navegador, ver Consideraciones de uso).
 - Costo: gratuito.
 
 ### Google Books API
@@ -60,8 +60,9 @@ Parámetros principales:
 
 | Parámetro | Descripción |
 |---|---|
-| q | Consulta de búsqueda (título, autor, palabras clave). |
-| fields | Campos a devolver. Usar el valor especial availability para incluir datos de disponibilidad. |
+| q | Consulta de búsqueda (título, autor, palabras clave). Acepta filtros fielded como subject:fiction; varios subjects se combinan con la sintaxis (subject:a OR subject:b). |
+| subject | Filtro por categoría; equivale a incluir subject:<valor> en q y se combina con la consulta de texto. |
+| fields | Campos a devolver. El campo ebook_access indica la disponibilidad del libro. |
 | limit | Cantidad de resultados por página. |
 | page | Número de página. |
 | sort | Ordenamiento (ej., old, new, rating, editions). |
@@ -117,6 +118,25 @@ Ejemplo:
 GET https://openlibrary.org/subjects/fiction.json
 ```
 
+Nota: para combinar categoría con búsqueda de texto se usa el filtro subject de la Search API en lugar de este endpoint.
+
+### Trending API
+
+Obtiene los libros en tendencia. Se usa como contenido inicial del catálogo cuando no hay consulta ni filtros activos.
+
+```
+GET https://openlibrary.org/trending/{period}.json
+```
+
+- period: daily, weekly o monthly.
+- Soporta el parámetro limit; la respuesta no se pagina en el servidor, por lo que la paginación se realiza del lado del cliente.
+
+Ejemplo:
+
+```
+GET https://openlibrary.org/trending/daily.json?limit=100
+```
+
 ## Campos relevantes del catálogo
 
 | Campo | Origen | Uso en la app |
@@ -130,11 +150,11 @@ GET https://openlibrary.org/subjects/fiction.json
 | ratings_average | Search | Ordenamiento por popularidad. |
 | subject | Search / Subjects | Filtrado por categorías. |
 | description | Works | Descripción en la página de detalles. |
-| availability | Search (con fields=availability) | Estado de disponibilidad para préstamos. |
+| ebook_access | Search | Estado de disponibilidad para préstamos (borrowable y public se consideran disponibles). |
 
 ## Consideraciones de uso
 
-- Enviar un header User-Agent con el nombre de la aplicación y un email de contacto para obtener el límite de 3 solicitudes por segundo.
+- Los navegadores no permiten personalizar el header User-Agent desde fetch, por lo que la app opera bajo el límite base de 1 solicitud por segundo.
 - Cachear respuestas del lado del cliente para reducir solicitudes repetidas.
 - Usar debounce en la búsqueda para evitar llamadas excesivas.
 - Implementar paginación con limit y page para no solicitar el catálogo completo.

@@ -52,6 +52,12 @@ Semana 1 - Planificación y Análisis de Requisitos
 - RF8.2: La aplicación debe usar roles ARIA apropiados en los componentes interactivos.
 - RF8.3: La aplicación debe tener contraste y tipografía legibles.
 
+### RF9 - Construcción y despliegue
+
+- RF9.1: La aplicación debe generar un build de producción optimizado con Vite.
+- RF9.2: La aplicación debe configurar entornos de desarrollo y producción mediante archivos .env con el prefijo VITE_.
+- RF9.3: La aplicación debe desplegarse en una plataforma Serverless o PaaS.
+
 ## Requisitos no funcionales
 
 ### RNF1 - Rendimiento

@@ -35,8 +35,8 @@ No requiere autenticación, expone campos de disponibilidad para simular présta
 ### Consecuencias
 
 - No se requiere gestionar claves de API ni variables de entorno para la fuente de datos.
-- El estado de disponibilidad se simula a partir de los datos públicos de Open Library.
-- Se debe respetar el límite de solicitudes enviando un header User-Agent y aplicando caché y debounce.
+- El estado de disponibilidad se simula a partir del campo ebook_access de la Search API y del estado local de préstamos de la aplicación.
+- Se debe respetar el límite de solicitudes aplicando caché y debounce. El navegador no permite personalizar el header User-Agent desde fetch, por lo que aplica el límite base de 1 solicitud por segundo.
 
 ---
 
@@ -83,9 +83,13 @@ Tailwind facilita un enfoque mobile-first y responsivo mediante utilidades, acel
 
 ### Consecuencias
 
-- Se configura Tailwind con PostCSS en el pipeline de Vite.
+- Se configura Tailwind CSS v4 mediante el plugin oficial @tailwindcss/vite, sin PostCSS ni archivo tailwind.config.
 - El diseño responsivo se expresa con los breakpoints de Tailwind (sm, md, lg, xl).
 - La accesibilidad (roles ARIA, foco por teclado) se complementa con utilidades de foco y visibilidad de Tailwind.
+
+### Revisión (Semana 3)
+
+La consecuencia original indicaba configurar Tailwind con PostCSS en el pipeline de Vite. Tailwind CSS v4 ya no usa PostCSS ni archivo de configuración: se integra con el plugin @tailwindcss/vite y la directiva @import "tailwindcss" en la hoja de estilos. Se actualiza la consecuencia para reflejar la integración real.
 
 ---
 
@@ -129,7 +133,7 @@ Usar Vite.
 
 ### Justificación
 
-Vite ofrece un servidor de desarrollo rápido con recarga en caliente, soporta TypeScript y React sin configuración extra, y genera builds optimizados para producción. Se integra de forma nativa con Tailwind CSS mediante PostCSS.
+Vite ofrece un servidor de desarrollo rápido con recarga en caliente, soporta TypeScript y React sin configuración extra, y genera builds optimizados para producción. Se integra con Tailwind CSS v4 mediante el plugin oficial @tailwindcss/vite (ver ADR-003).
 
 ### Consecuencias
 
