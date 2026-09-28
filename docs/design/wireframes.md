@@ -2,13 +2,13 @@
 
 Semana 2 - Diseño y Arquitectura
 
-Maquetas de las paginas clave de UniLibrary. La referencia visual principal es el wireframe de la pagina de catalogo; el resto de paginas se especifican en texto para mantener consistencia con ese estilo (alto contraste, marcos simples, badges de estado).
+Maquetas de las páginas clave de UniLibrary. La referencia visual principal es el wireframe de la página de catálogo; el resto de páginas se especifican en texto para mantener consistencia con ese estilo (alto contraste, marcos simples, badges de estado).
 
 ## Mapa de navegación
 
 ```mermaid
 flowchart TD
-    H[/Home - Catalogo/] --> BD[/Book Detail/]
+    H[/Home - Catálogo/] --> BD[/Book Detail/]
     H --> L[/My Loans/]
     H --> W[/Wishlist/]
     H --> C[/Contacto/]
@@ -18,75 +18,75 @@ flowchart TD
     W -->|marcar disponible| BD
 ```
 
-| Ruta | Pagina | Requiere sesion |
+| Ruta | Página | Requiere sesión |
 |---|---|---|
-| / | Catalogo (Home) | No |
-| /books/:workKey | Detalle del libro | No (prestamo/reserva si) |
-| /loans | Mis Prestamos | Si |
-| /wishlist | Lista de Deseos | Si |
+| / | Catálogo (Home) | No |
+| /books/:workKey | Detalle del libro | No (préstamo/reserva sí) |
+| /loans | Mis Préstamos | Sí |
+| /wishlist | Lista de Deseos | Sí |
 | /contact | Contacto | No |
-| /login | Iniciar Sesion | No |
+| /login | Iniciar Sesión | No |
 | /register | Registrarse | No |
 
-## Pagina de Catalogo (Home)
+## Página de Catálogo (Home)
 
-![Wireframe de la pagina de catalogo](wireframes/catalog-page.png)
+![Wireframe de la página de catálogo](wireframes/catalog-page.png)
 
 Elementos identificados en la maqueta:
 
 | Zona | Elementos |
 |---|---|
-| Header | Navegacion: Inicio, Mis Prestamos, Lista de Deseos, Contacto. Acciones: Iniciar Sesion, Registrarse. Con sesion activa los botones se reemplazan por el nombre del usuario y Cerrar sesion. |
-| Titulo | Catalogo de Biblioteca. |
-| Busqueda | Input Buscar por titulo, autor o ISBN... + boton Buscar. Aplica debounce en escritura ademas del submit. |
-| Categorias rapidas | Pills: Todos, Ficcion, Ciencia, Historia, Tecnologia, Arte, Derecho. Mapean a subjects de Open Library. |
-| Sidebar de filtros | CATEGORIA (checkboxes), ORDENAR POR (dropdown Relevancia + radios Autor A-Z, Fecha reciente, Popularidad, Titulo A-Z), boton Limpiar filtros. |
+| Header | Navegación: Inicio, Mis Préstamos, Lista de Deseos, Contacto. Acciones: Iniciar Sesión, Registrarse. Con sesión activa los botones se reemplazan por el nombre del usuario y Cerrar sesión. |
+| Título | Catálogo de Biblioteca. |
+| Búsqueda | Input Buscar por título, autor o ISBN... + botón Buscar. Aplica debounce en escritura además del submit. |
+| Categorías rápidas | Pills: Todos, Ficción, Ciencia, Historia, Tecnología, Arte, Derecho. Mapean a subjects de Open Library. |
+| Sidebar de filtros | CATEGORÍA (checkboxes), ORDENAR POR (dropdown Relevancia + radios Autor A-Z, Fecha reciente, Popularidad, Título A-Z), botón Limpiar filtros. |
 | Resultados | Texto Mostrando X-Y de N resultados para consulta + toggle de vista Grilla/Lista. |
-| Tarjeta de libro | Portada, titulo, autor y ano, badge de disponibilidad (Disponible/Prestado), boton Ver detalle, icono corazon para wishlist. |
+| Tarjeta de libro | Portada, título, autor y año, badge de disponibilidad (Disponible/Prestado), botón Ver detalle, icono corazón para wishlist. |
 
 ### Comportamiento responsivo (mobile-first)
 
-- En movil el sidebar de filtros colapsa en un boton Filtros que abre un drawer/modal.
-- Las pills de categorias pasan a scroll horizontal.
-- La grilla de resultados pasa de 3 columnas (desktop) a 2 (tablet) y 1 (movil).
-- El header colapsa la navegacion en un menu hamburguesa.
+- En móvil el sidebar de filtros colapsa en un botón Filtros que abre un drawer/modal.
+- Las pills de categorías pasan a scroll horizontal.
+- La grilla de resultados pasa de 3 columnas (desktop) a 2 (tablet) y 1 (móvil).
+- El header colapsa la navegación en un menú hamburguesa.
 
 ## Detalle del libro (/books/:workKey)
 
 | Zona | Contenido |
 |---|---|
-| Columna izquierda | Portada grande (Covers API tamano L con lazy loading). |
-| Columna derecha | Titulo, autor(es), ano de publicacion, generos (subjects como chips), descripcion (Works API), badge de disponibilidad. |
-| Acciones | Boton Pedir prestado (si disponible) o Reservar (si prestado). Selector de estado de lectura: Leyendo / Completado / Lista de deseos. |
-| Contexto | Enlace Volver al catalogo conservando filtros activos. |
+| Columna izquierda | Portada grande (Covers API tamaño L con lazy loading). |
+| Columna derecha | Título, autor(es), año de publicación, géneros (subjects como chips), descripción (Works API), badge de disponibilidad. |
+| Acciones | Botón Pedir prestado (si disponible) o Reservar (si prestado). Selector de estado de lectura: Leyendo / Completado / Lista de deseos. |
+| Contexto | Enlace Volver al catálogo conservando filtros activos. |
 
-## Mis Prestamos (/loans)
+## Mis Préstamos (/loans)
 
-| Seccion | Contenido |
+| Sección | Contenido |
 |---|---|
-| Prestamos activos | Lista/tabla: portada pequena, titulo, fecha de prestamo, fecha de vencimiento con indicador visual (proximo a vencer / vencido), boton Devolver. |
+| Préstamos activos | Lista/tabla: portada pequeña, título, fecha de préstamo, fecha de vencimiento con indicador visual (próximo a vencer / vencido), botón Devolver. |
 | Reservas | Reservas pendientes con fecha de solicitud y estado. |
-| Historial | Prestamos devueltos con rango de fechas. |
+| Historial | Préstamos devueltos con rango de fechas. |
 
 ## Lista de Deseos (/wishlist)
 
-- Lista de libros marcados con status wishlist: portada, titulo, autor, badge de disponibilidad.
-- Notificacion inline cuando un libro de la lista pasa a disponible (banner o badge Nuevo disponible).
+- Lista de libros marcados con status wishlist: portada, título, autor, badge de disponibilidad.
+- Notificación inline cuando un libro de la lista pasa a disponible (banner o badge Nuevo disponible).
 - Acciones por item: Ver detalle, Pedir prestado (si disponible), Quitar de la lista.
 
 ## Login y Registro (/login, /register)
 
-- Formulario centrado con validacion de cliente: email con formato valido, contrasena con longitud minima, confirmacion de contrasena en registro.
-- Errores de validacion junto a cada campo y mensajes accesibles (aria-describedby).
+- Formulario centrado con validación de cliente: email con formato válido, contraseña con longitud mínima, confirmación de contraseña en registro.
+- Errores de validación junto a cada campo y mensajes accesibles (aria-describedby).
 - Enlace cruzado entre login y registro.
 
 ## Contacto (/contact)
 
-- Formulario simple: nombre, email, asunto, mensaje. Validacion de cliente y confirmacion de envio (almacenamiento local o stub).
+- Formulario simple: nombre, email, asunto, mensaje. Validación de cliente y confirmación de envío (almacenamiento local o stub).
 
 ## Lineamientos de accesibilidad aplicados a las maquetas
 
-- Toda accion alcanzable por teclado: la grilla usa tarjetas con foco visible y orden de tabulacion logico.
+- Toda acción alcanzable por teclado: la grilla usa tarjetas con foco visible y orden de tabulación lógico.
 - Landmarks: header con nav, aside para filtros, main para resultados.
 - El toggle Grilla/Lista usa aria-pressed; los badges de disponibilidad no dependen solo del color (texto Disponible/Prestado).
 - Formularios con label asociado a cada input y aria-live para mensajes de error y conteo de resultados.

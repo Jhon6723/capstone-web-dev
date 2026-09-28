@@ -80,4 +80,4 @@ Construir una Aplicación de Página Única (SPA) rápida y responsiva que permi
 - El sistema de préstamos permite tomar prestados libros, reservarlos y consultar fechas de vencimiento, con historial persistente en Local Storage.
 - La aplicación es responsiva y usable en móvil y escritorio.
 - La navegación es accesible por teclado y usa roles ARIA.
-- La aplicación pasa pruebas unitarias e de integración y se despliega correctamente en una plataforma Serverless o PaaS.
+- La aplicación pasa pruebas unitarias y de integración y se despliega correctamente en una plataforma Serverless o PaaS.

@@ -2,7 +2,7 @@
 
 Semana 2 - Diseño y Arquitectura
 
-Modelo de datos para usuarios, prestamos, reservas, estado de lectura y lista de deseos. Toda la persistencia es en Local Storage (ADR-004), por lo que las entidades se serializan como JSON en claves versionadas.
+Modelo de datos para usuarios, préstamos, reservas, estado de lectura y lista de deseos. Toda la persistencia es en Local Storage (ADR-004), por lo que las entidades se serializan como JSON en claves versionadas.
 
 ## Diagrama de entidades
 
@@ -60,18 +60,18 @@ erDiagram
 interface User {
   id: string;             // UUID v4
   name: string;
-  email: string;          // unico, usado para login
+  email: string;          // único, usado para login
   passwordHash: string;   // nunca texto plano
   createdAt: string;      // ISO 8601
 }
 
 interface Session {
   userId: string;
-  token: string;          // token pseudo-aleatorio de sesion
+  token: string;          // token pseudo-aleatorio de sesión
   expiresAt: string;      // ISO 8601
 }
 
-// Snapshot de los datos del libro tomado en el momento de la accion.
+// Snapshot de los datos del libro tomado en el momento de la acción.
 // Open Library puede cambiar sus datos; el snapshot hace que el
 // historial sea autocontenido.
 interface BookRef {
@@ -81,7 +81,7 @@ interface BookRef {
   authors: string[];
   coverId?: number;       // cover_i, para reconstruir la URL de portada
   firstPublishYear?: number;
-  subjects?: string[];    // categorias en el momento del registro
+  subjects?: string[];    // categorías en el momento del registro
 }
 
 type LoanStatus = 'active' | 'returned' | 'overdue';
@@ -104,7 +104,7 @@ interface Reservation {
   book: BookRef;
   createdAt: string;
   status: ReservationStatus;
-  notifiedAt: string | null; // cuando se notifico la disponibilidad
+  notifiedAt: string | null; // cuando se notificó la disponibilidad
 }
 
 // Unifica el rastreador de estado de lectura (RF4.2) y la lista de
@@ -124,11 +124,11 @@ interface LibraryEntry {
 
 ### Wishlist como estado de lectura
 
-El capstone define Lista de deseos como un estado del rastreador de lectura (RF4.2) y tambien como una funcionalidad aparte con notificaciones (RF5). En lugar de dos colecciones duplicadas, un LibraryEntry con status wishlist cumple ambos requisitos: la Wishlist Page lista las entradas con ese status y las notificaciones de disponibilidad se generan al detectar que un libro de la lista pasa a disponible.
+El capstone define Lista de deseos como un estado del rastreador de lectura (RF4.2) y también como una funcionalidad aparte con notificaciones (RF5). En lugar de dos colecciones duplicadas, un LibraryEntry con status wishlist cumple ambos requisitos: la Wishlist Page lista las entradas con ese status y las notificaciones de disponibilidad se generan al detectar que un libro de la lista pasa a disponible.
 
 ### Snapshot de datos del libro (BookRef)
 
-Los prestamos, reservas y entradas de biblioteca guardan una copia de los campos relevantes del libro en el momento del registro. Esto permite renderizar el historial sin llamadas adicionales a la API y protege contra cambios en los datos de Open Library.
+Los préstamos, reservas y entradas de biblioteca guardan una copia de los campos relevantes del libro en el momento del registro. Esto permite renderizar el historial sin llamadas adicionales a la API y protege contra cambios en los datos de Open Library.
 
 ### Estado overdue derivado
 
@@ -136,29 +136,29 @@ Loan.status se almacena como active o returned; el estado vencido se calcula al 
 
 ## Esquema de Local Storage
 
-Las claves usan el prefijo unilibrary:v1:. La version permite migrar datos en futuras iteraciones sin romper la app.
+Las claves usan el prefijo unilibrary:v1:. La versión permite migrar datos en futuras iteraciones sin romper la app.
 
 | Clave | Contenido | Tipo |
 |---|---|---|
 | unilibrary:v1:users | Todos los usuarios registrados | User[] |
-| unilibrary:v1:session | Sesion activa o null | Session \| null |
-| unilibrary:v1:loans:{userId} | Prestamos del usuario (activos e historial) | Loan[] |
+| unilibrary:v1:session | Sesión activa o null | Session \| null |
+| unilibrary:v1:loans:{userId} | Préstamos del usuario (activos e historial) | Loan[] |
 | unilibrary:v1:reservations:{userId} | Reservas del usuario | Reservation[] |
 | unilibrary:v1:library:{userId} | Estado de lectura y wishlist del usuario | LibraryEntry[] |
-| unilibrary:v1:prefs:{userId} | Preferencias de UI (vista grilla/lista, ultimo ordenamiento) | object |
+| unilibrary:v1:prefs:{userId} | Preferencias de UI (vista grilla/lista, último ordenamiento) | object |
 
 ## Reglas de negocio
 
 | Regla | Detalle |
 |---|---|
-| Duracion de prestamo | LOAN_PERIOD_DAYS = 14 dias calendario desde borrowedAt. |
-| Un prestamo activo por libro | Un usuario no puede tener dos prestamos activos del mismo workKey. |
-| Reserva solo si esta prestado | Solo se puede reservar un libro que este en estado prestado. |
-| Reserva a prestamo | Cuando un libro prestado se devuelve, la reserva pendiente mas antigua pasa a fulfilled y se marca notifiedAt. |
-| Wishlist a prestamo | Un libro en la wishlist puede tomarse prestado sin salir de la lista. |
+| Duración de préstamo | LOAN_PERIOD_DAYS = 14 días calendario desde borrowedAt. |
+| Un préstamo activo por libro | Un usuario no puede tener dos préstamos activos del mismo workKey. |
+| Reserva solo si está prestado | Solo se puede reservar un libro que esté en estado prestado. |
+| Reserva a préstamo | Cuando un libro prestado se devuelve, la reserva pendiente más antigua pasa a fulfilled y se marca notifiedAt. |
+| Wishlist a préstamo | Un libro en la wishlist puede tomarse prestado sin salir de la lista. |
 
 ## Limitaciones conocidas
 
-- Local Storage tiene un limite aproximado de 5 MB por origen; el historial es pequeno en texto, por lo que no es un problema practico.
+- Local Storage tiene un límite aproximado de 5 MB por origen; el historial es pequeño en texto, por lo que no es un problema práctico.
 - Los datos no se sincronizan entre navegadores ni dispositivos (fuera de alcance, ver `docs/planning/scope.md`).
-- La autenticacion es local y academica; el passwordHash usa una funcion de hash simple del lado del cliente, no un esquema de produccion.
+- La autenticación es local y académica; el passwordHash usa una función de hash simple del lado del cliente, no un esquema de producción.
