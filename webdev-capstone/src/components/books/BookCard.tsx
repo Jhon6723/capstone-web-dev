@@ -1,4 +1,5 @@
 import type React from "react";
+import { Link } from "react-router-dom";
 import { coverImageUrl } from "../../services/open-library/books";
 import type { Book } from "../../types/book";
 import type { CatalogView } from "../../types/catalog";
@@ -67,12 +68,12 @@ const BookCard: React.FC<BookCardProps> = ({ book, view }) => {
                     <p className="text-xs text-slate-500">{year}</p>
                     <div className="mt-auto flex items-center justify-between gap-2 pt-2">
                         <AvailabilityBadge availability={book.availability} />
-                        <a
-                            href={detailHref}
+                        <Link
+                            to={detailHref}
                             className="rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
                         >
                             Ver detalle
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </li>
@@ -88,12 +89,12 @@ const BookCard: React.FC<BookCardProps> = ({ book, view }) => {
                 <p className="text-xs text-slate-500">{year}</p>
                 <div className="mt-auto space-y-2 pt-2">
                     <AvailabilityBadge availability={book.availability} />
-                    <a
-                        href={detailHref}
+                    <Link
+                        to={detailHref}
                         className="block rounded bg-indigo-600 px-3 py-1.5 text-center text-xs font-medium text-white hover:bg-indigo-700"
                     >
                         Ver detalle
-                    </a>
+                    </Link>
                 </div>
             </div>
         </li>

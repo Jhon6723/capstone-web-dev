@@ -1,5 +1,6 @@
-import { useState } from "react";
 import type React from "react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const NAV_ITEMS = [
     { label: "Inicio", href: "/" },
@@ -14,7 +15,7 @@ const Header: React.FC = () => {
     return (
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-                <a href="/" className="flex items-center gap-2 text-lg font-bold text-indigo-700">
+                <Link to="/" className="flex items-center gap-2 text-lg font-bold text-indigo-700">
                     <svg
                         viewBox="0 0 24 24"
                         fill="none"
@@ -29,34 +30,34 @@ const Header: React.FC = () => {
                         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                     </svg>
                     UniLibrary
-                </a>
+                </Link>
                 <nav aria-label="Navegación principal" className="hidden md:block">
                     <ul className="flex items-center gap-6 text-sm font-medium text-slate-600">
                         {NAV_ITEMS.map((item) => (
                             <li key={item.href}>
-                                <a
-                                    href={item.href}
+                                <Link
+                                    to={item.href}
                                     className="rounded hover:text-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                                 >
                                     {item.label}
-                                </a>
+                                </Link>
                             </li>
                         ))}
                     </ul>
                 </nav>
                 <div className="hidden items-center gap-3 md:flex">
-                    <a
-                        href="/login"
+                    <Link
+                        to="/login"
                         className="rounded px-3 py-1.5 text-sm font-medium text-slate-700 hover:text-indigo-700"
                     >
                         Iniciar Sesión
-                    </a>
-                    <a
-                        href="/register"
+                    </Link>
+                    <Link
+                        to="/register"
                         className="rounded bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
                     >
                         Registrarse
-                    </a>
+                    </Link>
                 </div>
                 <button
                     type="button"
@@ -99,28 +100,28 @@ const Header: React.FC = () => {
                     <ul className="space-y-1 px-4 py-3 text-sm font-medium text-slate-700">
                         {NAV_ITEMS.map((item) => (
                             <li key={item.href}>
-                                <a
-                                    href={item.href}
+                                <Link
+                                    to={item.href}
                                     className="block rounded px-2 py-2 hover:bg-slate-100"
                                 >
                                     {item.label}
-                                </a>
+                                </Link>
                             </li>
                         ))}
                     </ul>
                     <div className="flex gap-3 border-t border-slate-100 px-4 py-3">
-                        <a
-                            href="/login"
+                        <Link
+                            to="/login"
                             className="rounded px-3 py-1.5 text-sm font-medium text-slate-700 hover:text-indigo-700"
                         >
                             Iniciar Sesión
-                        </a>
-                        <a
-                            href="/register"
+                        </Link>
+                        <Link
+                            to="/register"
                             className="rounded bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
                         >
                             Registrarse
-                        </a>
+                        </Link>
                     </div>
                 </nav>
             )}
