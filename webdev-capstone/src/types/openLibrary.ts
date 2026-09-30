@@ -31,3 +31,23 @@ export interface TrendingResponse {
     query: string;
     works: TrendingWork[];
 }
+
+export interface WorkAuthorRef {
+    author: { key: string };
+    type?: { key: string };
+}
+
+export interface WorkDetailResponse {
+    key: string;
+    title: string;
+    description?: string | { type: string; value: string };
+    subjects?: string[];
+    covers?: number[];
+    authors?: WorkAuthorRef[];
+    first_publish_date?: string;
+}
+
+export interface AuthorResponse {
+    name: string;
+    personal_name?: string;
+}

@@ -70,6 +70,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, view }) => {
                         <AvailabilityBadge availability={book.availability} />
                         <Link
                             to={detailHref}
+                            state={{ book }}
                             className="rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
                         >
                             Ver detalle
@@ -91,6 +92,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, view }) => {
                     <AvailabilityBadge availability={book.availability} />
                     <Link
                         to={detailHref}
+                        state={{ book }}
                         className="block rounded bg-indigo-600 px-3 py-1.5 text-center text-xs font-medium text-white hover:bg-indigo-700"
                     >
                         Ver detalle
