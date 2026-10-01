@@ -1,6 +1,7 @@
 import type React from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../contexts/auth-context";
 
 const NAV_ITEMS = [
     { label: "Inicio", href: "/" },
@@ -11,6 +12,7 @@ const NAV_ITEMS = [
 
 const Header: React.FC = () => {
     const [menuOpen, setMenuOpen] = useState(false);
+    const { user, logout } = useAuth();
 
     return (
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
@@ -46,18 +48,35 @@ const Header: React.FC = () => {
                     </ul>
                 </nav>
                 <div className="hidden items-center gap-3 md:flex">
-                    <Link
-                        to="/login"
-                        className="rounded px-3 py-1.5 text-sm font-medium text-slate-700 hover:text-indigo-700"
-                    >
-                        Iniciar Sesión
-                    </Link>
-                    <Link
-                        to="/register"
-                        className="rounded bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-                    >
-                        Registrarse
-                    </Link>
+                    {user ? (
+                        <>
+                            <span className="text-sm font-medium text-slate-700">
+                                {user.name}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={logout}
+                                className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                            >
+                                Cerrar sesión
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link
+                                to="/login"
+                                className="rounded px-3 py-1.5 text-sm font-medium text-slate-700 hover:text-indigo-700"
+                            >
+                                Iniciar Sesión
+                            </Link>
+                            <Link
+                                to="/register"
+                                className="rounded bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+                            >
+                                Registrarse
+                            </Link>
+                        </>
+                    )}
                 </div>
                 <button
                     type="button"
@@ -109,19 +128,39 @@ const Header: React.FC = () => {
                             </li>
                         ))}
                     </ul>
-                    <div className="flex gap-3 border-t border-slate-100 px-4 py-3">
-                        <Link
-                            to="/login"
-                            className="rounded px-3 py-1.5 text-sm font-medium text-slate-700 hover:text-indigo-700"
-                        >
-                            Iniciar Sesión
-                        </Link>
-                        <Link
-                            to="/register"
-                            className="rounded bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-                        >
-                            Registrarse
-                        </Link>
+                    <div className="flex items-center gap-3 border-t border-slate-100 px-4 py-3">
+                        {user ? (
+                            <>
+                                <span className="text-sm font-medium text-slate-700">
+                                    {user.name}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        logout();
+                                        setMenuOpen(false);
+                                    }}
+                                    className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                                >
+                                    Cerrar sesión
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    className="rounded px-3 py-1.5 text-sm font-medium text-slate-700 hover:text-indigo-700"
+                                >
+                                    Iniciar Sesión
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    className="rounded bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+                                >
+                                    Registrarse
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </nav>
             )}

@@ -14,6 +14,18 @@ export const router = createBrowserRouter([
                     Component: (await import("../pages/book-detail/BookDetailPage")).default,
                 }),
             },
+            {
+                path: "/login",
+                lazy: async () => ({
+                    Component: (await import("../pages/auth/LoginPage")).default,
+                }),
+            },
+            {
+                path: "/register",
+                lazy: async () => ({
+                    Component: (await import("../pages/auth/RegisterPage")).default,
+                }),
+            },
             { path: "*", element: <NotFoundPage /> },
         ],
     },
