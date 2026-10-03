@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import BookResults from "../../components/books/BookResults";
 import { fetchTrending, PAGE_SIZE, searchBooks } from "../../services/open-library/books";
 import type { Book } from "../../types/book";
@@ -105,10 +105,10 @@ const CatalogPage: React.FC = () => {
         setStatus("loading");
     };
 
-    const handleRetry = () => {
+    const handleRetry = useCallback(() => {
         setRequestId((id) => id + 1);
         setStatus("loading");
-    };
+    }, []);
 
     return (
         <main className="mx-auto w-full max-w-7xl px-4 pb-12 sm:px-6">

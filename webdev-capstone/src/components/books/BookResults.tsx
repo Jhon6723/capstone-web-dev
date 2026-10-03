@@ -1,4 +1,5 @@
 import type React from "react";
+import { memo } from "react";
 import type { Book } from "../../types/book";
 import type { CatalogStatus, CatalogView } from "../../types/catalog";
 import BookCard from "./BookCard";
@@ -84,4 +85,4 @@ const BookResults: React.FC<BookResultsProps> = ({
     );
 };
 
-export default BookResults;
+export default memo(BookResults);
