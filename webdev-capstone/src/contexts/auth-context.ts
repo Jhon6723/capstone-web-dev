@@ -5,6 +5,7 @@ export type AuthResult = { ok: true } | { ok: false; error: string };
 
 export interface AuthContextValue {
     user: PublicUser | null;
+    loading: boolean;
     login: (email: string, password: string) => Promise<AuthResult>;
     register: (name: string, email: string, password: string) => Promise<AuthResult>;
     logout: () => void;

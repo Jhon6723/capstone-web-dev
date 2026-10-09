@@ -33,12 +33,14 @@ function mapAuthError(error: AuthError): string {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<PublicUser | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
             setUser(session?.user ? toPublicUser(session.user) : null);
+            setLoading(false);
         });
         return () => subscription.unsubscribe();
     }, []);
@@ -46,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const value = useMemo<AuthContextValue>(
         () => ({
             user,
+            loading,
             login: async (email, password): Promise<AuthResult> => {
                 const { error } = await supabase.auth.signInWithPassword({
                     email: email.trim().toLowerCase(),
@@ -76,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 void supabase.auth.signOut();
             },
         }),
-        [user]
+        [user, loading]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import FormField from "../../components/ui/FormField";
 import { useAuth } from "../../contexts/auth-context";
 
@@ -9,6 +9,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const LoginPage: React.FC = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>(
@@ -31,7 +33,7 @@ const LoginPage: React.FC = () => {
             setErrors({ form: result.error });
             return;
         }
-        navigate("/");
+        navigate(from ?? "/", { replace: true });
     };
 
     return (

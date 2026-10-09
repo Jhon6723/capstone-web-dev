@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import FormField from "../../components/ui/FormField";
 import { useAuth } from "../../contexts/auth-context";
 
@@ -10,6 +10,8 @@ const MIN_PASSWORD_LENGTH = 8;
 const RegisterPage: React.FC = () => {
     const { register } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -41,7 +43,7 @@ const RegisterPage: React.FC = () => {
             setErrors({ form: result.error });
             return;
         }
-        navigate("/");
+        navigate(from ?? "/", { replace: true });
     };
 
     return (
