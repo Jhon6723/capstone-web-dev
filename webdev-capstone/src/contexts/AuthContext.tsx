@@ -1,85 +1,79 @@
+import type { AuthError, User } from "@supabase/supabase-js";
 import type React from "react";
-import { useMemo, useState } from "react";
-import { readJson, removeKey, storageKey, writeJson } from "../services/storage/storage";
-import type { PublicUser, Session, User } from "../types/auth";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../services/supabase/client";
+import type { PublicUser } from "../types/auth";
 import type { AuthContextValue, AuthResult } from "./auth-context";
 import { AuthContext } from "./auth-context";
 
-const USERS_KEY = storageKey("users");
-const SESSION_KEY = storageKey("session");
-const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-
 function toPublicUser(user: User): PublicUser {
-    return { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt };
-}
-
-async function hashPassword(password: string): Promise<string> {
-    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
-    return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function readUsers(): User[] {
-    return readJson<User[]>(USERS_KEY, []);
-}
-
-function createSession(userId: string): void {
-    const session: Session = {
-        userId,
-        token: crypto.randomUUID(),
-        expiresAt: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
+    return {
+        id: user.id,
+        name: (user.user_metadata?.name as string | undefined) ?? "",
+        email: user.email ?? "",
+        createdAt: user.created_at,
     };
-    writeJson(SESSION_KEY, session);
 }
 
-function restoreUser(): PublicUser | null {
-    const session = readJson<Session | null>(SESSION_KEY, null);
-    if (!session) return null;
-    const found = readUsers().find((u) => u.id === session.userId);
-    if (!found || new Date(session.expiresAt) <= new Date()) {
-        removeKey(SESSION_KEY);
-        return null;
+function mapAuthError(error: AuthError): string {
+    switch (error.code) {
+        case "invalid_credentials":
+            return "Email o contraseña incorrectos.";
+        case "user_already_exists":
+        case "email_exists":
+            return "Ya existe una cuenta con ese email.";
+        case "email_not_confirmed":
+            return "Debes confirmar tu correo antes de iniciar sesión.";
+        case "weak_password":
+            return "La contraseña es demasiado débil.";
+        default:
+            return "No se pudo completar la operación. Intenta de nuevo.";
     }
-    return toPublicUser(found);
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<PublicUser | null>(restoreUser);
+    const [user, setUser] = useState<PublicUser | null>(null);
+
+    useEffect(() => {
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ? toPublicUser(session.user) : null);
+        });
+        return () => subscription.unsubscribe();
+    }, []);
 
     const value = useMemo<AuthContextValue>(
         () => ({
             user,
             login: async (email, password): Promise<AuthResult> => {
-                const found = readUsers().find(
-                    (u) => u.email === email.trim().toLowerCase()
-                );
-                if (!found || (await hashPassword(password)) !== found.passwordHash) {
-                    return { ok: false, error: "Email o contraseña incorrectos." };
-                }
-                createSession(found.id);
-                setUser(toPublicUser(found));
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: email.trim().toLowerCase(),
+                    password,
+                });
+                if (error) return { ok: false, error: mapAuthError(error) };
                 return { ok: true };
             },
             register: async (name, email, password): Promise<AuthResult> => {
-                const users = readUsers();
-                const normalized = email.trim().toLowerCase();
-                if (users.some((u) => u.email === normalized)) {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email.trim().toLowerCase(),
+                    password,
+                    options: { data: { name: name.trim() } },
+                });
+                if (error) return { ok: false, error: mapAuthError(error) };
+                if (data.user?.identities?.length === 0) {
                     return { ok: false, error: "Ya existe una cuenta con ese email." };
                 }
-                const created: User = {
-                    id: crypto.randomUUID(),
-                    name: name.trim(),
-                    email: normalized,
-                    passwordHash: await hashPassword(password),
-                    createdAt: new Date().toISOString(),
-                };
-                writeJson(USERS_KEY, [...users, created]);
-                createSession(created.id);
-                setUser(toPublicUser(created));
+                if (!data.session) {
+                    return {
+                        ok: false,
+                        error: "Cuenta creada. Revisa tu correo para confirmarla antes de iniciar sesión.",
+                    };
+                }
                 return { ok: true };
             },
             logout: () => {
-                removeKey(SESSION_KEY);
-                setUser(null);
+                void supabase.auth.signOut();
             },
         }),
         [user]
