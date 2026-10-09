@@ -9,9 +9,10 @@ Registro de decisiones tomadas durante la planificación del proyecto UniLibrary
 | ADR-001 | Usar Open Library API como fuente del catálogo | Aceptada |
 | ADR-002 | Usar React Context API para la gestión de estado | Aceptada |
 | ADR-003 | Usar Tailwind CSS para el estilizado | Aceptada |
-| ADR-004 | Usar Local Storage para la persistencia de datos | Aceptada |
+| ADR-004 | Usar Local Storage para la persistencia de datos | Reemplazada por ADR-007 |
 | ADR-005 | Usar Vite como herramienta de build y desarrollo | Aceptada |
 | ADR-006 | Usar React Router DOM para el enrutamiento | Aceptada |
+| ADR-007 | Usar Supabase como servicio backend para autenticación y persistencia | Aceptada |
 
 ---
 
@@ -95,7 +96,7 @@ La consecuencia original indicaba configurar Tailwind con PostCSS en el pipeline
 
 ## ADR-004 - Persistencia: Local Storage
 
-- Estado: Aceptada
+- Estado: Reemplazada por ADR-007
 - Fecha: Semana 1
 
 ### Contexto
@@ -115,6 +116,10 @@ El alcance académico no requiere sincronización entre dispositivos ni multiusu
 - Los datos viven en el navegador del usuario y no se sincronizan entre dispositivos.
 - Se implementa una capa de acceso a Local Storage con serialización y manejo de errores.
 - Se debe considerar la limpieza de datos y el límite de tamaño de Local Storage.
+
+### Revisión (Semana 6)
+
+Esta decisión queda reemplazada por ADR-007. En la semana 6 se decide incorporar un backend para la autenticación y el manejo de la API, ya que la autenticación simulada en el cliente no cumple el requisito de mecanismos seguros de autenticación (RNF2.3). La evaluación de servicios se documenta en `docs/planning/backend-research.md`.
 
 ---
 
@@ -166,6 +171,42 @@ Es la opción indicada por el capstone y la solución estándar de enrutamiento 
 
 ---
 
+## ADR-007 - Servicio backend: Supabase
+
+- Estado: Aceptada
+- Fecha: Semana 6
+
+### Contexto
+
+En la semana 6 se decide implementar un backend externo para la autenticación y el manejo de la API. La implementación actual usa Local Storage (ADR-004) con autenticación simulada en el cliente: los usuarios y el hash de las contraseñas viven en el navegador, por lo que no hay verificación real del lado del servidor ni protección entre usuarios.
+
+El capstone permite elegir entre Local Storage o un servicio backend (ej., Firebase, Supabase). Se evaluaron Supabase, Firebase, Clerk, Appwrite y PocketBase priorizando curva de aprendizaje rápida y facilidad de integración. Ver `docs/planning/backend-research.md`.
+
+### Decisión
+
+Usar Supabase como servicio backend para la autenticación de usuarios y la persistencia de los datos de usuario (préstamos, reservas, historial, lista de deseos y estado de lectura).
+
+### Justificación
+
+- Un único servicio cubre autenticación y base de datos, integrándose con una sola dependencia (@supabase/supabase-js) y dos variables de entorno.
+- Auth emite sesiones JWT que el SDK gestiona y persiste automáticamente en el navegador, reemplazando la sesión manual actual.
+- El modelo relacional encaja con el dominio: usuarios, préstamos, reservas, lista de deseos y estado de lectura son entidades relacionadas.
+- Row Level Security aplica las reglas de acceso en Postgres del lado del servidor, cumpliendo RNF2.3 con un mecanismo real y demostrable.
+- SQL es un lenguaje estándar y familiar, por lo que la curva de aprendizaje se concentra en el SDK y en las políticas RLS.
+- Supabase está nombrado en la especificación del capstone y el despliegue del frontend no cambia: se consume por HTTPS como servicio externo.
+- El refactor queda acotado a la capa de servicios: AuthContext delega en supabase.auth y los contextos de biblioteca en consultas a las tablas, sin tocar páginas ni componentes.
+
+### Consecuencias
+
+- Se crean tablas para los datos de usuario con políticas RLS que limitan cada fila a su propietario.
+- Se configuran las variables VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en los archivos .env (RF9.2). La clave anon es pública por diseño; la clave service_role nunca se incluye en el frontend.
+- La sesión la gestiona el SDK de Supabase, no un registro propio en Local Storage.
+- El catálogo sigue viniendo de Open Library (ADR-001); Supabase no interviene en esa fuente.
+- Los proyectos del plan Free se pausan tras 7 días de inactividad. Se acepta el riesgo documentado en la investigación: el proyecto se mantiene activo durante el desarrollo y puede restaurarse desde el dashboard.
+- Se actualiza la arquitectura Nivel 2 para incluir Supabase como sistema externo.
+
+---
+
 ## Stack tecnológico finalizado
 
 | Componente | Tecnología |
@@ -177,7 +218,7 @@ Es la opción indicada por el capstone y la solución estándar de enrutamiento 
 | Estilizado | Tailwind CSS |
 | Integración de API | Fetch API |
 | Enrutamiento | React Router DOM |
-| Persistencia de datos | Local Storage |
+| Servicio backend | Supabase (auth y persistencia por usuario) |
 | Despliegue | Por definir (Vercel, Netlify o AWS Amplify) |
 
-La decisión de despliegue (ADR-007) se tomará en la Semana 7 al evaluar las plataformas disponibles y los requisitos de build de producción.
+La decisión de despliegue (ADR-008) se tomará en la Semana 7 al evaluar las plataformas disponibles y los requisitos de build de producción.
