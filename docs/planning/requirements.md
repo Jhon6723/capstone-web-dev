@@ -22,7 +22,7 @@ Semana 1 - Planificación y Análisis de Requisitos
 - RF3.1: La aplicación debe permitir a un usuario tomar prestado un libro disponible.
 - RF3.2: La aplicación debe registrar la fecha de préstamo y calcular una fecha de vencimiento.
 - RF3.3: La aplicación debe permitir reservar un libro que se encuentra actualmente prestado.
-- RF3.4: La aplicación debe almacenar el historial de préstamos del usuario de forma persistente en Local Storage.
+- RF3.4: La aplicación debe almacenar el historial de préstamos del usuario de forma persistente en la base de datos (Supabase).
 - RF3.5: La aplicación debe mostrar los préstamos activos con su fecha de vencimiento.
 
 ### RF4 - Página de detalles del libro

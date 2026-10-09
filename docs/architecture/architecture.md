@@ -6,7 +6,7 @@ Documento de arquitectura de alto nivel de UniLibrary usando el modelo C4. Los d
 
 ## Nivel 1 - System Context
 
-El sistema es una SPA que el usuario usa desde el navegador. Consume la API pública de Open Library para el catálogo. El Local Storage del navegador (persistencia) es parte del sistema y aparece en el nivel Container.
+El sistema es una SPA que el usuario usa desde el navegador. Consume la API pública de Open Library para el catálogo y Supabase para la autenticación y la persistencia de datos de usuario.
 
 ```mermaid
 C4Context
@@ -17,14 +17,16 @@ C4Context
     System(unilibrary, "UniLibrary", "SPA para explorar el catálogo, gestionar préstamos, reservas, estado de lectura y lista de deseos")
 
     System_Ext(openLibrary, "Open Library API", "API pública de catálogo de libros: Search, Works, Subjects, Covers")
+    System_Ext(supabase, "Supabase", "Autenticación y base de datos Postgres para usuarios, préstamos, reservas y biblioteca personal")
 
     Rel(user, unilibrary, "Usa", "HTTPS")
     Rel(unilibrary, openLibrary, "Consulta catálogo y portadas", "HTTPS/JSON")
+    Rel(unilibrary, supabase, "Autentica y persiste datos de usuario", "HTTPS/JSON")
 ```
 
 ## Nivel 2 - Container
 
-El sistema tiene un único container de ejecución (la SPA React en el navegador) y un container de persistencia proporcionado por el navegador (Local Storage). No hay backend propio.
+El sistema tiene un único container de ejecución (la SPA React en el navegador) y usa Supabase como servicio externo de autenticación y persistencia. No hay backend propio.
 
 ```mermaid
 C4Container
@@ -34,14 +36,14 @@ C4Container
 
     Container_Boundary(unilibrary, "UniLibrary") {
         Container(spa, "Single-Page Application", "React, TypeScript, Vite, Tailwind CSS", "Corre en el navegador del usuario")
-        ContainerDb(storage, "Local Storage", "Web Storage API", "Usuarios, sesión, préstamos, reservas, estado de lectura y lista de deseos")
     }
 
     System_Ext(openLibrary, "Open Library API", "Search, Works, Subjects, Covers")
+    System_Ext(supabase, "Supabase", "Auth + Postgres", "Usuarios, préstamos, reservas, estado de lectura y lista de deseos")
 
     Rel(user, spa, "Usa", "HTTPS")
     Rel(spa, openLibrary, "Consulta catálogo", "HTTPS/JSON")
-    Rel(spa, storage, "Lee y escribe", "Web Storage API")
+    Rel(spa, supabase, "Autentica, lee y escribe", "HTTPS/JSON")
 ```
 
 ## Nivel 3 - Component
@@ -55,7 +57,7 @@ C4Component
     Person(user, "Usuario")
 
     System_Ext(openLibrary, "Open Library API")
-    ContainerDb(storage, "Local Storage", "Web Storage API")
+    System_Ext(supabase, "Supabase", "Auth + Postgres")
 
     Container_Boundary(spa, "Single-Page Application") {
         Component(router, "App Router", "React Router DOM", "Rutas, parámetros y lazy loading por ruta")
@@ -70,8 +72,7 @@ C4Component
         Component(libraryContext, "Library Context", "React Context", "Préstamos, reservas, lectura, wishlist")
 
         Component(apiClient, "Open Library Client", "Fetch API", "Debounce, caché y manejo de errores")
-        Component(storageService, "Storage Service", "Web Storage API", "Serialización y claves versionadas")
-        Component(loanService, "Loan Service", "TypeScript", "Reglas de préstamo, reserva y vencimiento")
+        Component(libraryService, "Supabase Library Service", "@supabase/supabase-js", "Préstamos, reservas, biblioteca y disponibilidad")
     }
 
     Rel(user, router, "Navega")
@@ -88,13 +89,12 @@ C4Component
 
     Rel(catalogPage, apiClient, "Search y Subjects")
     Rel(bookPage, apiClient, "Works y Covers")
-    Rel(authContext, storageService, "Usuarios y sesión")
-    Rel(libraryContext, storageService, "Préstamos y biblioteca")
-    Rel(libraryContext, loanService, "Reglas de dominio")
-    Rel(loanService, apiClient, "Verifica disponibilidad")
+    Rel(libraryContext, libraryService, "Préstamos y biblioteca")
+    Rel(catalogPage, libraryService, "Disponibilidad")
 
     Rel(apiClient, openLibrary, "HTTPS/JSON")
-    Rel(storageService, storage, "Web Storage API")
+    Rel(authContext, supabase, "Auth", "HTTPS/JSON")
+    Rel(libraryService, supabase, "Tablas y RPC", "HTTPS/JSON")
 ```
 
 ## Decisiones estructurales
@@ -112,17 +112,17 @@ El estado del catálogo (consulta, filtros, ordenamiento, resultados y paginaci�
 
 ### Capa de servicios desacoplada de la UI
 
-Los componentes nunca llaman a fetch ni a localStorage directamente. Toda interacción externa pasa por tres servicios:
+Los componentes nunca llaman a fetch ni a Supabase directamente. Toda interacción externa pasa por los servicios:
 
 | Servicio | Responsabilidad |
 |---|---|
-| Open Library Client | Peticiones HTTP con debounce, caché en memoria, header User-Agent identificado y manejo de errores. |
-| Storage Service | Serialización JSON, claves versionadas (unilibrary:v1:*) y manejo de errores de cuota. |
-| Loan Service | Reglas de negocio de préstamos y reservas, cálculo de fechas de vencimiento. |
+| Open Library Client | Peticiones HTTP con caché en memoria y manejo de errores. |
+| Supabase Client | Cliente @supabase/supabase-js configurado con las variables VITE_. |
+| Supabase Library Service | Mappers fila/dominio y operaciones de préstamos, reservas, biblioteca y disponibilidad contra las tablas y funciones RPC. |
 
-### Disponibilidad simulada
+### Disponibilidad por préstamos activos
 
-Open Library no gestiona préstamos reales de la biblioteca universitaria. El Loan Service deriva la disponibilidad combinando el campo availability de la Search API con el estado local de préstamos de la aplicación.
+UniLibrary maneja un ejemplar por libro: un libro está Prestado si algún usuario tiene un préstamo activo de él (ADR-008). La disponibilidad se consulta con la función RPC loaned_work_keys por conjunto de work keys — una llamada por página de resultados — y el campo ebook_access de Open Library ya no interviene. Revisión aplicada en Semana 6: la sección anterior describía una disponibilidad simulada a partir del campo availability de la Search API.
 
 ## Flujo de datos principal
 
@@ -131,12 +131,10 @@ flowchart LR
     subgraph SPA["Single-Page Application"]
         P[Pages] --> C[Contexts]
         C --> S1[Open Library Client]
-        C --> S2[Storage Service]
-        C --> S3[Loan Service]
-        S3 --> S1
+        C --> S3[Supabase Library Service]
     end
     S1 -->|HTTPS/JSON| OL[Open Library API]
-    S2 -->|Web Storage| LS[Local Storage]
+    S3 -->|HTTPS/JSON| SB[Supabase Auth + Postgres]
     U[Usuario] --> P
 ```
 
@@ -154,18 +152,22 @@ src/
     loans/
     wishlist/
     auth/
+    not-found/
   components/
+    auth/
     ui/
     books/
     layout/
   contexts/
+    auth-context.ts
     AuthContext.tsx
+    library-context.ts
     LibraryContext.tsx
   hooks/
+    useLoanedWorkKeys.ts
   services/
     open-library/
-    storage/
-    loans/
+    supabase/
   types/
   utils/
   styles/

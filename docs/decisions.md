@@ -13,6 +13,7 @@ Registro de decisiones tomadas durante la planificación del proyecto UniLibrary
 | ADR-005 | Usar Vite como herramienta de build y desarrollo | Aceptada |
 | ADR-006 | Usar React Router DOM para el enrutamiento | Aceptada |
 | ADR-007 | Usar Supabase como servicio backend para autenticación y persistencia | Aceptada |
+| ADR-008 | Disponibilidad multiusuario y reglas de préstamo en la base de datos | Aceptada |
 
 ---
 
@@ -207,6 +208,43 @@ Usar Supabase como servicio backend para la autenticación de usuarios y la pers
 
 ---
 
+## ADR-008 - Disponibilidad multiusuario y reglas de préstamo en la base de datos
+
+- Estado: Aceptada
+- Fecha: Semana 6
+
+### Contexto
+
+La primera versión del modelo de préstamos asumía un solo usuario por navegador: la disponibilidad se simulaba con el campo ebook_access de Open Library y las reglas de negocio (un préstamo activo por libro, reservas, devolución) se aplicaban en el cliente. Con Supabase ya hay múltiples usuarios reales sobre la misma base de datos (ADR-007), por lo que esas reglas deben vivir del lado del servidor para que sean consistentes entre usuarios y no dependan de un cliente confiable.
+
+### Decisión
+
+Modelar UniLibrary con un ejemplar por libro y mover las reglas de préstamo a Postgres:
+
+- Un libro está Prestado si existe un préstamo activo de cualquier usuario. La disponibilidad se consulta con la función security definer loaned_work_keys, que recibe una lista de work keys y devuelve solo las que tienen préstamo activo, sin exponer quién lo tiene.
+- La devolución se ejecuta con la función return_loan, que marca el préstamo como devuelto y cumple la reserva pendiente más antigua del libro en la misma transacción.
+- Las tablas loans y reservations usan grants a nivel de columna: el cliente solo puede insertar el user_id y el snapshot del libro, mientras estado y fechas los asigna la base de datos.
+- Las reservas solo se permiten sobre libros prestados por otro usuario, regla aplicada con una política RLS de inserción.
+- La tabla library_entries guarda el estado de lectura y la lista de deseos por usuario y libro.
+- El campo ebook_access de Open Library deja de definir la disponibilidad en la aplicación.
+
+### Justificación
+
+- Un índice único parcial sobre loans con status active garantiza un solo préstamo activo por libro aunque dos clientes intenten pedirlo al mismo tiempo.
+- La función security definer permite consultar disponibilidad de todos los usuarios sin abrir la tabla loans a lectura entre usuarios: expone únicamente work keys.
+- Hacer la devolución y el cumplimiento de la reserva en una sola función evita estados intermedios inconsistentes.
+- Los grants por columna impiden que un cliente modifique status o extienda su propia fecha de vencimiento, reforzando RNF2.3.
+- ebook_access describe formatos digitales en Open Library, no el inventario de UniLibrary; la disponibilidad real solo la conocen los préstamos de la aplicación.
+
+### Consecuencias
+
+- La disponibilidad del catálogo y del detalle se calcula por página de resultados con una llamada RPC por conjunto de work keys.
+- El cliente no puede registrar devoluciones ni cambiar estados directamente: toda mutación pasa por RPC o por políticas RLS.
+- Limitación conocida: una reserva cumplida no aparta el libro; cuando queda disponible, lo toma prestado el primer usuario que lo solicite.
+- La implementación SQL vive en `webdev-capstone/supabase/schema.sql` y `webdev-capstone/supabase/002_multiuser_library.sql`.
+
+---
+
 ## Stack tecnológico finalizado
 
 | Componente | Tecnología |
@@ -221,4 +259,4 @@ Usar Supabase como servicio backend para la autenticación de usuarios y la pers
 | Servicio backend | Supabase (auth y persistencia por usuario) |
 | Despliegue | Por definir (Vercel, Netlify o AWS Amplify) |
 
-La decisión de despliegue (ADR-008) se tomará en la Semana 7 al evaluar las plataformas disponibles y los requisitos de build de producción.
+La decisión de despliegue (ADR-009) se tomará en la Semana 7 al evaluar las plataformas disponibles y los requisitos de build de producción.
