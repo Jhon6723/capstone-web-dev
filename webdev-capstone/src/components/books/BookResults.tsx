@@ -2,6 +2,7 @@ import type React from "react";
 import { memo } from "react";
 import type { Book } from "../../types/book";
 import type { CatalogStatus, CatalogView } from "../../types/catalog";
+import { toWorkId } from "../../utils/loans";
 import BookCard from "./BookCard";
 
 interface BookResultsProps {
@@ -9,6 +10,7 @@ interface BookResultsProps {
     books: Book[];
     view: CatalogView;
     appliedQuery: string;
+    loaned: Set<string> | null;
     onRetry: () => void;
 }
 
@@ -17,6 +19,7 @@ const BookResults: React.FC<BookResultsProps> = ({
     books,
     view,
     appliedQuery,
+    loaned,
     onRetry,
 }) => {
     if (status === "loading") {
@@ -79,7 +82,18 @@ const BookResults: React.FC<BookResultsProps> = ({
             }
         >
             {books.map((book) => (
-                <BookCard key={book.workKey} book={book} view={view} />
+                <BookCard
+                    key={book.workKey}
+                    book={book}
+                    view={view}
+                    availability={
+                        loaned
+                            ? loaned.has(toWorkId(book.workKey))
+                                ? "unavailable"
+                                : "available"
+                            : undefined
+                    }
+                />
             ))}
         </ul>
     );

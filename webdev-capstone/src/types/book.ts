@@ -8,5 +8,4 @@ export interface Book {
     firstPublishYear?: number;
     subjects: string[];
     ratingsAverage?: number;
-    availability: BookAvailability;
 }

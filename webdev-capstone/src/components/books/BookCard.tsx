@@ -1,7 +1,7 @@
 import type React from "react";
 import { Link } from "react-router-dom";
 import { coverImageUrl } from "../../services/open-library/books";
-import type { Book } from "../../types/book";
+import type { Book, BookAvailability } from "../../types/book";
 import type { CatalogView } from "../../types/catalog";
 import AvailabilityBadge from "./AvailabilityBadge";
 
@@ -46,9 +46,10 @@ const CoverImage: React.FC<CoverImageProps> = ({ cover, title, className }) => {
 interface BookCardProps {
     book: Book;
     view: CatalogView;
+    availability?: BookAvailability;
 }
 
-const BookCard: React.FC<BookCardProps> = ({ book, view }) => {
+const BookCard: React.FC<BookCardProps> = ({ book, view, availability }) => {
     const cover = coverImageUrl(book.coverId, "M");
     const detailHref = `/books/${book.workKey.split("/").pop()}`;
     const authors = book.authors.length > 0 ? book.authors.join(", ") : "Autor desconocido";
@@ -67,7 +68,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, view }) => {
                     <p className="mt-1 line-clamp-1 text-xs text-slate-500">{authors}</p>
                     <p className="text-xs text-slate-500">{year}</p>
                     <div className="mt-auto flex items-center justify-between gap-2 pt-2">
-                        <AvailabilityBadge availability={book.availability} />
+                        {availability && <AvailabilityBadge availability={availability} />}
                         <Link
                             to={detailHref}
                             state={{ book }}
@@ -89,7 +90,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, view }) => {
                 <p className="line-clamp-1 text-xs text-slate-500">{authors}</p>
                 <p className="text-xs text-slate-500">{year}</p>
                 <div className="mt-auto space-y-2 pt-2">
-                    <AvailabilityBadge availability={book.availability} />
+                    {availability && <AvailabilityBadge availability={availability} />}
                     <Link
                         to={detailHref}
                         state={{ book }}

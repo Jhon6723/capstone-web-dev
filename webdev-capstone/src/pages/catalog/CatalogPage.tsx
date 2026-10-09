@@ -1,9 +1,12 @@
 import type React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import BookResults from "../../components/books/BookResults";
+import { useLibrary } from "../../contexts/library-context";
+import { useLoanedWorkKeys } from "../../hooks/useLoanedWorkKeys";
 import { fetchTrending, PAGE_SIZE, searchBooks } from "../../services/open-library/books";
 import type { Book } from "../../types/book";
 import type { CatalogSort, CatalogStatus, CatalogView } from "../../types/catalog";
+import { toWorkId } from "../../utils/loans";
 import { sortBooks } from "../../utils/sortBooks";
 import CategoryPills from "./CategoryPills";
 import FilterSidebar from "./FilterSidebar";
@@ -27,6 +30,13 @@ const CatalogPage: React.FC = () => {
     const [requestId, setRequestId] = useState(0);
 
     const isDefaultView = appliedQuery.trim() === "" && subjects.length === 0;
+
+    const { loans } = useLibrary();
+    const workKeys = useMemo(() => books.map((book) => book.workKey), [books]);
+    const { loaned } = useLoanedWorkKeys(
+        useMemo(() => workKeys.map(toWorkId), [workKeys]),
+        loans
+    );
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -142,6 +152,7 @@ const CatalogPage: React.FC = () => {
                         books={books}
                         view={view}
                         appliedQuery={appliedQuery}
+                        loaned={loaned}
                         onRetry={handleRetry}
                     />
                     <Pagination
