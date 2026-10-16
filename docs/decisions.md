@@ -14,6 +14,7 @@ Registro de decisiones tomadas durante la planificación del proyecto UniLibrary
 | ADR-006 | Usar React Router DOM para el enrutamiento | Aceptada |
 | ADR-007 | Usar Supabase como servicio backend para autenticación y persistencia | Aceptada |
 | ADR-008 | Disponibilidad multiusuario y reglas de préstamo en la base de datos | Aceptada |
+| ADR-009 | Usar Vitest y React Testing Library para las pruebas | Aceptada |
 
 ---
 
@@ -245,6 +246,35 @@ Modelar UniLibrary con un ejemplar por libro y mover las reglas de préstamo a P
 
 ---
 
+## ADR-009 - Pruebas: Vitest y React Testing Library
+
+- Estado: Aceptada
+- Fecha: Semana 6
+
+### Contexto
+
+El curso presenta Jest como framework de pruebas para React. El proyecto usa Vite como herramienta de build y desarrollo (ADR-005), con módulos ESM, TypeScript y variables de entorno expuestas por import.meta.env.
+
+### Decisión
+
+Usar Vitest como runner y framework de aserciones, y React Testing Library con user-event y jest-dom para las pruebas de componentes y páginas. La cobertura se mide con el provider v8.
+
+### Justificación
+
+- Vitest reutiliza la configuración y el pipeline de transformación de Vite, por lo que ESM, TypeScript e import.meta.env funcionan en las pruebas igual que en la aplicación sin configurar Babel ni ts-jest.
+- Su API es compatible con la de Jest (describe, it, expect y vi.fn como análogo de jest.fn), por lo que los conceptos del curso se transfieren directamente.
+- React Testing Library impulsa pruebas centradas en el usuario, consultando por roles, textos y etiquetas accesibles en lugar de detalles de implementación.
+- La configuración de pruebas vive en el mismo archivo de configuración de Vite (`webdev-capstone/vite.config.ts`), lo que reduce la superficie de tooling del proyecto.
+
+### Consecuencias
+
+- Vitest y las bibliotecas de Testing Library se declaran como dependencias de desarrollo, no de producción.
+- Los archivos de prueba viven en `webdev-capstone/tests/` junto con el setup global y las fábricas compartidas.
+- La estrategia completa de pruebas (principios, mapa de archivos, cobertura y verificación manual de las reglas de Postgres) se documenta en `docs/quality/testing-strategy.md`.
+- No se instala Jest: los ejemplos del curso se traducen a la API equivalente de Vitest.
+
+---
+
 ## Stack tecnológico finalizado
 
 | Componente | Tecnología |
@@ -259,4 +289,4 @@ Modelar UniLibrary con un ejemplar por libro y mover las reglas de préstamo a P
 | Servicio backend | Supabase (auth y persistencia por usuario) |
 | Despliegue | Por definir (Vercel, Netlify o AWS Amplify) |
 
-La decisión de despliegue (ADR-009) se tomará en la Semana 7 al evaluar las plataformas disponibles y los requisitos de build de producción.
+La decisión de despliegue (ADR-010) se tomará en la Semana 7 al evaluar las plataformas disponibles y los requisitos de build de producción.
