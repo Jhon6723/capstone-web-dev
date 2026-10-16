@@ -2,6 +2,8 @@
 
 Semana 1 - Planificación y Análisis de Requisitos
 
+Revisado en la semana 6: la persistencia pasó de Local Storage a Supabase (ADR-007) y las reglas de préstamo multiusuario se aplican en la base de datos (ADR-008).
+
 ## Nombre del proyecto
 
 UniLibrary - SPA de gestión y exploración de libros para una biblioteca universitaria.
@@ -33,17 +35,16 @@ Construir una Aplicación de Página Única (SPA) rápida y responsiva que permi
 - Sistema de préstamos: tomar prestado, reservar, historial y fechas de vencimiento.
 - Rastreador de estado de lectura (Leyendo, Completado, Lista de deseos).
 - Lista de deseos con notificaciones de disponibilidad.
-- Autenticación básica de usuarios (inicio y cierre de sesión).
-- Persistencia local de préstamos, historial, lista de deseos y estado de lectura mediante Local Storage.
+- Autenticación de usuarios (registro, inicio y cierre de sesión) con Supabase Auth.
+- Persistencia de préstamos, reservas, historial, lista de deseos y estado de lectura en Postgres de Supabase, con aislamiento por usuario mediante Row Level Security.
 - Diseño responsivo mobile-first con accesibilidad por teclado y roles ARIA.
 - Carga perezosa de imágenes y optimización de rendimiento.
 - Despliegue en una plataforma Serverless o PaaS.
 
 ### Fuera del alcance (Out-of-scope)
 
-- Backend propio: la persistencia se realiza en Local Storage, no en una base de datos remota.
+- Backend propio: la autenticación y la persistencia se delegan a Supabase como servicio administrado, sin servidor desarrollado por el equipo.
 - Préstamos físicos reales o integración con sistemas de biblioteca existentes.
-- Sincronización de datos entre dispositivos (los datos viven en el navegador del usuario).
 - Catálogo cargado desde Google Books API (se evalúa Open Library como única fuente).
 - Pagos, suscripciones o cualquier funcionalidad comercial.
 - Aplicación móvil nativa (se entrega una SPA web responsiva).
@@ -51,15 +52,15 @@ Construir una Aplicación de Página Única (SPA) rápida y responsiva que permi
 ## Suposiciones
 
 - La Open Library API mantiene disponibilidad y límites de uso suficientes para una demostración académica.
-- Los datos de disponibilidad de cada libro se simulan a partir de la información pública de la API, ya que Open Library no gestiona préstamos reales de la biblioteca universitaria.
-- La autenticación de usuarios es básica (local, sin proveedor externo) y suficiente para el alcance académico.
+- La disponibilidad de cada libro se deriva de los préstamos activos registrados en la aplicación, ya que Open Library no gestiona préstamos reales de la biblioteca universitaria.
+- El plan gratuito de Supabase es suficiente para el alcance académico.
 
 ## Restricciones
 
 - Lenguaje: TypeScript.
 - Framework: React.
 - Enrutamiento: React Router DOM.
-- Persistencia: Local Storage (sin backend).
+- Autenticación y persistencia: Supabase (Auth y Postgres).
 - El proyecto debe entregarse dentro del cronograma de 7 semanas del capstone.
 
 ## Entregables clave
@@ -70,14 +71,14 @@ Construir una Aplicación de Página Única (SPA) rápida y responsiva que permi
 | Diseño y arquitectura | 2 | Diagramas arquitectónicos, modelo de datos y maquetas UI/UX. |
 | Características principales | 3 | Navegación, visualización, búsqueda, filtrado y ordenamiento. |
 | Características de usuario | 4 | Detalles del libro, autenticación, préstamos y revisión a mitad de proyecto. |
-| Características avanzadas | 5 | Lista de deseos, rastreador de lectura y persistencia local. |
+| Características avanzadas | 5 | Lista de deseos, rastreador de lectura y persistencia de datos. |
 | Pruebas y QA | 6 | Pruebas unitarias y de integración, corrección de errores y optimización. |
 | Despliegue y cierre | 7 | Despliegue, documentación y entrega final. |
 
 ## Criterios de éxito
 
 - La SPA carga el catálogo desde la Open Library API y permite búsqueda, filtrado y ordenamiento de forma fluida.
-- El sistema de préstamos permite tomar prestados libros, reservarlos y consultar fechas de vencimiento, con historial persistente en Local Storage.
+- El sistema de préstamos permite tomar prestados libros, reservarlos y consultar fechas de vencimiento, con historial persistente en Supabase y disponibilidad consistente entre usuarios.
 - La aplicación es responsiva y usable en móvil y escritorio.
 - La navegación es accesible por teclado y usa roles ARIA.
 - La aplicación pasa pruebas unitarias y de integración y se despliega correctamente en una plataforma Serverless o PaaS.
