@@ -4,17 +4,18 @@ Registro de decisiones tomadas durante la planificación del proyecto UniLibrary
 
 ## Estado de las decisiones
 
-| ID | Decisión | Estado |
-|---|---|---|
-| ADR-001 | Usar Open Library API como fuente del catálogo | Aceptada |
-| ADR-002 | Usar React Context API para la gestión de estado | Aceptada |
-| ADR-003 | Usar Tailwind CSS para el estilizado | Aceptada |
-| ADR-004 | Usar Local Storage para la persistencia de datos | Reemplazada por ADR-007 |
-| ADR-005 | Usar Vite como herramienta de build y desarrollo | Aceptada |
-| ADR-006 | Usar React Router DOM para el enrutamiento | Aceptada |
-| ADR-007 | Usar Supabase como servicio backend para autenticación y persistencia | Aceptada |
-| ADR-008 | Disponibilidad multiusuario y reglas de préstamo en la base de datos | Aceptada |
-| ADR-009 | Usar Vitest y React Testing Library para las pruebas | Aceptada |
+| ID      | Decisión                                                              | Estado                  |
+| ------- | --------------------------------------------------------------------- | ----------------------- |
+| ADR-001 | Usar Open Library API como fuente del catálogo                        | Aceptada                |
+| ADR-002 | Usar React Context API para la gestión de estado                      | Aceptada                |
+| ADR-003 | Usar Tailwind CSS para el estilizado                                  | Aceptada                |
+| ADR-004 | Usar Local Storage para la persistencia de datos                      | Reemplazada por ADR-007 |
+| ADR-005 | Usar Vite como herramienta de build y desarrollo                      | Aceptada                |
+| ADR-006 | Usar React Router DOM para el enrutamiento                            | Aceptada                |
+| ADR-007 | Usar Supabase como servicio backend para autenticación y persistencia | Aceptada                |
+| ADR-008 | Disponibilidad multiusuario y reglas de préstamo en la base de datos  | Aceptada                |
+| ADR-009 | Usar Vitest y React Testing Library para las pruebas                  | Aceptada                |
+| ADR-010 | Desplegar en Vercel                                                   | Aceptada                |
 
 ---
 
@@ -275,18 +276,44 @@ Usar Vitest como runner y framework de aserciones, y React Testing Library con u
 
 ---
 
+## ADR-010 - Despliegue: Vercel
+
+- Estado: Aceptada
+- Fecha: Semana 7
+
+### Contexto
+
+UniLibrary es una SPA estática compilada con Vite que consume dos servicios externos: la Open Library API (pública) y Supabase (auth y datos). No hay un servidor propio que alojar, por lo que un despliegue estático con HTTPS es suficiente. El enrutador usa createBrowserRouter con rutas reales (/books/:workKey, /loans), así que la plataforma debe reescribir cualquier ruta a index.html para que las recargas y los enlaces profundos funcionen.
+
+### Decisión
+
+Desplegar en Vercel conectando el repositorio de GitHub. Las variables VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY se definen en el panel del proyecto de Vercel y se inyectan al compilar. `webdev-capstone/vercel.json` declara un rewrite de todas las rutas a /index.html.
+
+### Justificación
+
+- Vercel detecta proyectos Vite sin configuración adicional: el comando de build npm run build y el directorio de salida dist quedan correctos por defecto.
+- HTTPS automático (requisito 9: transmisión segura de datos) y despliegue por push sin mantenimiento.
+- Las anon keys de Supabase son públicas por diseño (la seguridad vive en las políticas RLS, no en la clave), por lo que exponerlas en el build no es un problema; las variables de entorno solo existen para no fijar el proyecto de Supabase en el código.
+- El plan gratuito cubre el alcance académico.
+
+### Consecuencias
+
+- El root directory del proyecto en Vercel se configura como webdev-capstone.
+- Cada push a la rama principal dispara un despliegue de producción; las ramas generan previews.
+- Si la plataforma cambiara, el equivalente en Netlify es un archivo _redirects con la misma regla.
+
+---
+
 ## Stack tecnológico finalizado
 
-| Componente | Tecnología |
-|---|---|
-| Lenguaje | TypeScript |
-| Framework frontend | React |
-| Herramienta de build | Vite |
-| Gestión de estado | React Context API |
-| Estilizado | Tailwind CSS |
-| Integración de API | Fetch API |
-| Enrutamiento | React Router DOM |
-| Servicio backend | Supabase (auth y persistencia por usuario) |
-| Despliegue | Por definir (Vercel, Netlify o AWS Amplify) |
-
-La decisión de despliegue (ADR-010) se tomará en la Semana 7 al evaluar las plataformas disponibles y los requisitos de build de producción.
+| Componente           | Tecnología                                 |
+| -------------------- | ------------------------------------------ |
+| Lenguaje             | TypeScript                                 |
+| Framework frontend   | React                                      |
+| Herramienta de build | Vite                                       |
+| Gestión de estado    | React Context API                          |
+| Estilizado           | Tailwind CSS                               |
+| Integración de API   | Fetch API                                  |
+| Enrutamiento         | React Router DOM                           |
+| Servicio backend     | Supabase (auth y persistencia por usuario) |
+| Despliegue           | Vercel (ADR-010)                           |
